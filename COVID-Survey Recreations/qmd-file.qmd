@@ -1,5 +1,5 @@
 ---
-title: "HW 05"
+title: "COVID Surveys"
 author: "Usama Ahmed"
 format: 
   html:
@@ -231,7 +231,7 @@ covid_survey_summary_stats$explanatory <- factor(covid_survey_summary_stats$expl
 
 # plot
 
-ggplot(covid_survey_summary_stats, aes(x = mean, y = explanatory_value)) +
+m <- ggplot(covid_survey_summary_stats, aes(x = mean, y = explanatory_value)) +
   geom_point() +
   geom_errorbar(aes(xmin = low, xmax = high),
                 width = 0.2, 
@@ -247,6 +247,8 @@ ggplot(covid_survey_summary_stats, aes(x = mean, y = explanatory_value)) +
         panel.grid.minor = element_blank(),
         strip.background = element_rect(color = "black", fill = "gray90"),
         strip.text.y.right = element_text(angle = 0))
+
+ggsave("COVID-LikertPlot.png", plot = m, width = 12, height = 10)
 
 ```
 
@@ -309,7 +311,7 @@ plot_2 <- ggplot(df_3, aes(x = str_wrap(response, width = 10), y = perc, fill = 
 
 # Combined Plot
 
-plot_1 + plot_2 +
+k <- plot_1 + plot_2 +
   plot_annotation(title = "Opinions towards COVID-19 vaccination",
        caption = "Source: Johns Hopkins School of Medicine") +
   plot_layout(guides = "collect") &
@@ -317,6 +319,8 @@ plot_1 + plot_2 +
   theme_minimal() &
   theme(legend.position = "top") &
   labs(fill = "Response") 
+
+ggsave("COVID-StackedAndDivergingPlot.png", plot = k, width = 12, height = 11)
 
 ```
 
