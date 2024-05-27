@@ -1,2 +1,8 @@
 # VizHistoryR
-A repository dedicated to recreating and exploring famous and historical data visualizations using R (ggplot). Dive into the world of data storytelling by replicating iconic visualizations such as W.E.B. Du Bois' groundbreaking sociological charts, Charles Minard's famous depiction of Napoleon's march, and many more.
+A repository dedicated to recreating and exploring famous and historical data visualizations using R (ggplot). Visualizations include:
+
+-	Income and Expenditure of 150 Negro Families in Atlanta by W.E.B. Du Bois
+-	Naopleon's March by Charles Joseph Minard
+-	Likert Representation of COVID-19 Survey by Johns Hopkins School of Medicine (including my take on the visualization)
+-	Brexit Survey Visualization by YouGov
+
