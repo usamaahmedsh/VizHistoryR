@@ -1,0 +1,411 @@
+---
+title: "Du Bois and Minard"
+author: "Usama Ahmed"
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+    fig_retina: 1
+toc: true
+---
+
+## 0 - Setup
+
+```{r, include = FALSE}
+#| label: setup
+
+
+if (!require("pacman")) 
+  install.packages("pacman")
+
+# use this line for installing/loading
+pacman::p_load(tidyverse,
+               gridExtra,
+               grid,
+               gtable,
+               ggpubr,
+               ggmap,
+               ggrepel,
+               patchwork,
+               units,
+               data.table,
+               devtools,
+               tibble,
+               here,
+               stringr,
+               janitor,
+               ragg,
+               ggthemes,
+               cowplot,
+               broom,
+               scales,
+               gganimate,
+               colorspace,
+               showtext,
+               ggimage,
+               likert,
+               kableExtra) 
+
+# Set themes/layouts of html file
+
+ggplot2::theme_set(ggplot2::theme_minimal(base_size = 14))
+
+options(width = 65)
+ 
+knitr::opts_chunk$set(
+  fig.width = 7,
+  fig.asp = 0.618,
+  fig.retina = 3,
+  fig.align = "center",
+  dpi = 300,
+  warning = FALSE,
+  message = FALSE
+)
+
+
+
+```
+
+
+## 3 - Du Bois Recreation
+
+```{r, dev='ragg_png'}
+#| label: Du Bois
+#| fig.alt: "A recreation of Du Bois' Income and Expenditure of 150 Negro Families in Atlanta."
+
+font_add_google(name = "Public Sans")
+
+showtext_auto()
+
+data <- read_csv(here("data","income.csv"))
+
+data$y <- paste0(data$Class, " "," "," "," "," ","$",data$Average_Income)
+
+data_long <- pivot_longer(data, 
+                    cols = c("Rent","Food","Clothes","Tax","Other"),
+                    names_to = "utilities",
+                    values_to = "percentage") 
+
+data_long$y <- factor(data_long$y, 
+                              levels = c("$1000 AND OVER     $1125",
+                                         "$750-1000     $880",
+                                         "$500-750     $547",
+                                         "$400-500     $433.82",
+                                         "$300-400     $335.66",
+                                         "$200-300     $249.45",
+                                         "$100-200     $139.1"))
+
+data_long$utilities <- factor(data_long$utilities, levels = 
+                                c("Other",
+                                  "Tax",
+                                  "Clothes",
+                                  "Food",
+                                  "Rent"))
+
+
+
+data_long <- subset(data_long, percentage != 0)
+data_long$percentage[4] <- 0.5
+data_long$percentage[5] <- 9.9
+
+
+
+
+# base plot
+
+{
+  l1 <- ggplot(data_long, aes(x = percentage, y = y, fill = utilities)) +
+    geom_bar(stat = "identity", width = 0.5) + 
+    geom_text(aes(label = ifelse(percentage != 0.5, paste0(percentage, "%"), "")),
+              color = ifelse(data_long$utilities == "Rent", "white","black"), 
+              size = 2.7, 
+              color = "black",
+              family = "Gill Sans MT",
+              fontface = "bold",
+              position = position_stack(vjust = 0.5)) +
+    scale_fill_manual(values = c("Rent" = "#11110f",
+                                 "Food" = "#7e6583",
+                                 "Clothes" = "#d2b48c",
+                                 "Tax" = "#aaa3a1",
+                                 "Other" = "#ffc0cb")) +
+    labs(title = "INCOME AND EXPENDITURE OF 150 NEGRO FAMILIES IN ATLANTA,GA.,U.S.A",
+         x = NULL,
+         y = NULL,
+         fill = NULL) +
+    theme_minimal() +
+    theme(legend.position = "none",
+          plot.title.position = "plot",
+          axis.text.x = element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.major.y = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          text = element_text(family = "Gill Sans MT"),
+          plot.title = element_text(hjust = 0.5, margin=margin(0,0,25,0)))
+  
+  # Adding line segments connecting the bar plot
+  
+  category_labs <- data.frame(utilities = unique(data_long$utilities))
+  
+  category_labs$percent <- c(20,39.8,59,80, NA) 
+  category_labs$n_adjust <- c(19, 62, 90, 90.5,NA)
+  category_labs$n_adjust_2 <- c(22, 69, 92, 96,NA)
+  category_labs$n_adjust_3 <- c(23, 66, 84, 88.5,NA)
+  category_labs$n_adjust_4 <- c(18, 55, 70, 75.8,NA)
+  category_labs$n_adjust_5 <- c(13, 44, 61, 66,NA)
+  category_labs$n_adjust_6 <- c(0, 37, 56,64,NA)
+  category_labs$n_adjust_7 <- c(NA, 29, 45, 49.5,NA)
+  
+  l2 <- l1 +
+      geom_col(
+      data = category_labs, 
+      aes(x=20, y=8, fill = utilities),
+      width = 0.2,
+      color = "black",
+      alpha = 0.85
+      ) +
+      geom_segment(
+      data = category_labs,
+      aes(x=percent,
+        xend=n_adjust,
+        y=7.95,
+        yend=7.25
+        ),
+      color = "black", size = 0.2, linetype="solid"
+      ) +
+      geom_segment(
+      data = category_labs,
+      aes(x=n_adjust,
+        xend=n_adjust_2,
+        y=6.78,
+        yend=6.20
+        ),
+      color = "black", size = 0.2, linetype="solid"
+      ) +
+      geom_segment(
+      data = category_labs,
+      aes(x=n_adjust_2,
+        xend=n_adjust_3,
+        y=5.78,
+        yend=5.2
+        ),
+      color = "black", size = 0.2, linetype="solid"
+      ) +
+      geom_segment(
+      data = category_labs,
+      aes(x=n_adjust_3,
+        xend=n_adjust_4,
+        y=4.78,
+        yend=4.25
+        ),
+      color = "black", size = 0.2, linetype="solid"
+      ) +
+      geom_segment(
+      data = category_labs,
+      aes(x=n_adjust_4,
+        xend=n_adjust_5,
+        y=3.78,
+        yend=3.25
+        ),
+      color = "black", size = 0.2, linetype="solid"
+      ) +
+      geom_segment(
+      data = category_labs,
+      aes(x=n_adjust_5,
+        xend=n_adjust_6,
+        y=2.78,
+        yend=2.25
+        ),
+      color = "black", size = 0.2, linetype="solid"
+      ) +
+      geom_segment(
+      data = category_labs,
+      aes(x=n_adjust_6,
+        xend=n_adjust_7,
+        y=1.78,
+        yend=1.25
+        ),
+      color = "black", size = 0.2, linetype="solid"
+      )
+  
+  # Adding y-axis annotations + table
+  
+  data$Class[data$Class == "$1000 AND OVER"] <- "OVER $1000"
+  labels_class = data$Class |> as.list()
+  labels_income = paste0("$",data$Average_Income) |> as.list()
+  
+  
+  l3 <- l2 + 
+    theme(axis.text.y = element_blank()) +
+    coord_cartesian(clip = "off") +
+    annotate(geom = "text",
+             x = -35,
+             y = data$y,
+             label = labels_class,
+             size = 2.7) +
+    annotate(geom = "text",
+             x = -15,
+             y = data$y,
+             label = labels_income,
+             size = 2.7) +
+    annotate(geom = "text",
+             x = -35,
+             y = 7.7,
+             label = "CLASS",
+             size = 2.2) +
+    annotate(geom = "text",
+             x = -15,
+             y = 7.7,
+             label = "ACTUAL AVERAGE",
+             size = 2.2) +
+    annotate(geom = "line",
+             x = -25,
+             y = seq(0.5,7.9,0.1)) +
+    annotate(geom = "line",
+             x = -5,
+             y = seq(0.5,7.9,0.1)) +
+    annotate(geom = "line",
+             x = -45,
+             y = seq(0.5,7.9,0.1)) +
+    annotate(geom = "segment",
+             x = -45,
+             xend = 2,
+             y = seq(0.5,7.5, 1),
+             yend = seq(0.5,7.5, 1),
+             arrow = arrow(type = "closed", length = unit(0.1, "cm"))) +
+    annotate(geom = "segment",
+             x = -45,
+             xend = -5,
+             y = 7.89,
+             yend = 7.89) 
+  
+  # Add labels at bar end
+  
+  l4 <- l3 +
+    annotate("text", x=110, y=6.5,label = "POOR", angle=90, size=2) + 
+    annotate("text", x=110, y=4.5,label = "FAIR", angle=90, size=2) +
+    annotate("text", x=110, y=2.5, label = "COMFORTABLE", angle=90, size=2) +
+    annotate("text", x=110, y=0.9, label = "WELL-TO-DO", angle=90, size=2) 
+  
+  # Add curly brackets
+
+  bracketsGrob <- function(...){
+  l <- list(...)
+  e <- new.env()
+  e$l <- l
+    grid:::recordGrob(  {
+      do.call(grid.brackets, l)
+    }, e)
+  }
+
+  p1 <- bracketsGrob(0.91, 0.85, 0.91, 0.15, h=0.04, lwd=1)
+  p2 <- bracketsGrob(0.91, 0.85, 0.91, 0.15, h=0.04, lwd=1)
+  p3 <- bracketsGrob(0.91, 0.85, 0.91, 0.15, h=0.04, lwd=1)
+  p4 <- bracketsGrob(0.91, 0.21, 0.91, 0.12, h=0.02, lwd=1)
+
+  l5 <- l4 +
+    annotation_custom(p1, ymin = 5.4, ymax = 7.6) +
+    annotation_custom(p2, ymin = 3.4, ymax = 5.6) +
+    annotation_custom(p3, ymin = 1.4, ymax = 3.6) +
+    annotation_custom(p4, ymin = 0.2, ymax = 5)
+  
+  # Add legend labels + Caption
+  
+  category_levels = c("RENT", "FOOD", "CLOTHES", "TAX", "OTHER")
+  
+  l6 <- l5 +
+    annotate(geom = "text",
+             x = c(10,30,50,70,90),
+             y = 8.4,
+             label = category_levels,
+             family = "Gill Sans MT",
+             size = 2.7) +
+    annotate(geom = "text",
+             x = 50,
+             y = 0.4,
+             label = "FOR FURTHER STATISTICS RAISE THE FRAME.",
+             size = 2.7,
+             family = "Gill Sans MT")
+  
+  
+}
+ 
+parchment <- image_read(here("images","parchment.jpg")) |> image_resize("800x400")
+
+k <- ggdraw() + draw_image(parchment, width = 1.1, scale = 2.5) + draw_plot(l6)
+
+ggsave("DuBois.png", plot = k, width = 12, height = 10)
+
+
+```
+
+```{r, fig.width=10}
+#| label: An improved-version of Napoleon's March
+#| fig.alt: "A recreation of Charles Joseph Minard's Napoleon March"
+
+# Load data
+
+napoleon_data <- read_rds(here("data","napoleon.rds"))
+
+# Store data frames in objects
+
+cities <- napoleon_data$cities
+temperatures <- napoleon_data$temperatures
+troops <- napoleon_data$troops
+
+temperatures$temp_date <- paste0(temperatures$temp, "° ",temperatures$date)
+
+
+# Plot 
+
+cities_troops <- ggplot() +
+  geom_path(data = troops, aes(x = long,
+                   y = lat,
+                   group = group,
+                   color = direction,
+                   size = survivors),
+            lineend = "round") + 
+  scale_size("Survivors", range = c(1, 10)) +
+  geom_point(data = cities, aes(x = long, y = lat)) +
+  geom_text_repel(data = cities, aes(x = long, y = lat, label = city)) +
+  scale_colour_manual(values = c("yellow", "red")) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.text.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank()) +
+  labs(x = NULL,
+       y = "Latitude",
+       title = "Napoleon's March to Russia") 
+  
+
+
+temp <- ggplot(temperatures, aes(x = long, y = temp)) +
+  geom_path(color = "black", size = 1.1) +
+  geom_point(size = 2.5) +
+  geom_text_repel(aes(x = long, y = temp, label = temp_date)) +
+  labs(x = "Longitude", 
+       y = "Temperature",
+       caption = "Source: Charles Joseph Minard") +
+  coord_cartesian(xlim = c(24,38)) +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_line(color = "black"),
+        panel.grid.minor.y = element_blank()) 
+  
+
+l <-  grid.draw(grobTree(
+                   rectGrob(gp=gpar(fill="#c3bbae",col = "black", lwd=5)), 
+                   grid.arrange(cities_troops, temp, heights = c(3,1))
+                   ))
+
+ggsave("NapoleonMarch.png", plot = l, width = 12, height = 10)
+
+
+
+```
+
+
